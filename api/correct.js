@@ -1,28 +1,32 @@
+import fetch from "node-fetch";
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const text = req.query.text || "";
-  if (!text.trim()) {
+  if (!text) {
     return res.status(200).json({ result: "" });
   }
 
   try {
-    const prompt =
-      "صحح هذا النص لغويًا ونحويًا وصرفيًا واجعله فصيحًا: " + text;
-
-    const response = await fetch(
-      "https://api.mymemory.translated.net/get?q=" +
-        encodeURIComponent(prompt) +
-        "&langpair=ar|ar"
+    const HF = await fetch(
+      "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer hf_xxxxxxxxxxxxxxxxx" // ganti API key kamu
+        },
+        body: JSON.stringify({
+          inputs: `صحح هذا النص لغويًا ونحويًا وصرفيًا واجعله فصيحًا:\n${text}`
+        })
+      }
     );
 
-    const data = await response.json();
-    const out =
-      data.responseData.translatedText ||
-      data.responseData.translated_text ||
-      "";
+    const data = await HF.json();
+    const output = data[0]?.generated_text || "";
 
-    res.status(200).json({ result: out });
+    res.status(200).json({ result: output });
   } catch (err) {
     res.status(500).json({ error: err.toString() });
   }
