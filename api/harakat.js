@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // CORS wajib
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer hf_xxx_ganti_tokenmu"
+          "Authorization": "Bearer hf_xxxTOKENxxx" // ganti tokenmu
         },
         body: JSON.stringify({ inputs: text })
       }
@@ -26,7 +26,15 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    const result = data[0]?.generated_text || "";
+    let result = "";
+
+    if (Array.isArray(data)) {
+      result = data[0]?.generated_text || "";
+    } else if (data.generated_text) {
+      result = data.generated_text;
+    } else if (typeof data === "object") {
+      result = JSON.stringify(data);
+    }
 
     res.status(200).json({ result });
   } catch (err) {
