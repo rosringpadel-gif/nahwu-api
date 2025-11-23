@@ -1,9 +1,3 @@
-export const config = {
-  runtime: "nodejs"
-};
-
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
@@ -11,9 +5,21 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Ambil text dari POST atau GET
-  const text = req.body?.text || req.query?.text || "";
-  if (!text) return res.status(200).json({ result: "" });
+  let text = "";
+
+  try {
+    if (req.method === "POST") {
+      text = req.body?.text || "";
+    } else {
+      text = req.query.text || "";
+    }
+  } catch {
+    text = "";
+  }
+
+  if (!text.trim()) {
+    return res.status(200).json({ result: "" });
+  }
 
   try {
     const HF = await fetch(
@@ -31,13 +37,7 @@ export default async function handler(req, res) {
     );
 
     const data = await HF.json();
-
-    // Tangani error HF
-    if (data.error) {
-      return res.status(500).json({ error: data.error });
-    }
-
-    const output = Array.isArray(data) ? data[0]?.generated_text : "";
+    const output = data[0]?.generated_text || "";
 
     res.status(200).json({ result: output });
 
