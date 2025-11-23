@@ -2,7 +2,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const text = req.query.text || "";
-  if (!text) return res.status(200).json({ result: "" });
+
+  if (!text) {
+    return res.status(200).json({ result: "" });
+  }
 
   try {
     const HF = await fetch(
@@ -11,14 +14,27 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer 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"
+          Authorization: `Bearer ${process.env.HF_TOKEN}`
         },
         body: JSON.stringify({ inputs: text })
       }
     );
 
     const data = await HF.json();
-    const output = data[0]?.generated_text || "";
+
+    let output = "";
+
+    if (Array.isArray(data) && data[0]?.generated_text) {
+      output = data[0].generated_text;
+    } else if (data.generated_text) {
+      output = data.generated_text;
+    } else if (typeof data === "string") {
+      output = data;
+    } else if (Array.isArray(data) && data[0]?.label) {
+      output = data[0].label;
+    } else {
+      output = JSON.stringify(data);
+    }
 
     res.status(200).json({ result: output });
   } catch (err) {
