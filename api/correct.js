@@ -1,3 +1,7 @@
+export const config = {
+  runtime: "nodejs"
+};
+
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
@@ -7,8 +11,8 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Ambil dari POST body BUKAN req.query
-  const text = req.body?.text || "";
+  // Ambil text dari POST atau GET
+  const text = req.body?.text || req.query?.text || "";
   if (!text) return res.status(200).json({ result: "" });
 
   try {
@@ -27,7 +31,13 @@ export default async function handler(req, res) {
     );
 
     const data = await HF.json();
-    const output = data[0]?.generated_text || "";
+
+    // Tangani error HF
+    if (data.error) {
+      return res.status(500).json({ error: data.error });
+    }
+
+    const output = Array.isArray(data) ? data[0]?.generated_text : "";
 
     res.status(200).json({ result: output });
 
