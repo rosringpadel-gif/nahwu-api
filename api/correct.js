@@ -1,46 +1,26 @@
+// api/correct.js
 export default async function handler(req, res) {
-  // CORS
+  // Izinkan CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
 
   try {
-    const body = JSON.parse(req.body || "{}");
-    const text = body.text || "";
+    const body = await req.body || "";
 
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer hf_xxxTOKENxxx"   // ganti tokenmu
-        },
-        body: JSON.stringify({
-          inputs: `صحح هذا النص لغويًا ونحويًا وصرفيًا واجعله فصيحًا:\n${text}`
-        })
-      }
-    );
+    // Jika body adalah string JSON → parse
+    const text = typeof body === "string"
+      ? JSON.parse(body).text
+      : body.text;
 
-    const data = await response.json();
+    if (!text) return res.status(200).json({ result: "" });
 
-    let result = "";
+    // Belum ada API khusus koreksi nahwu-shorof → sementara return apa adanya
+    return res.status(200).json({ result: text });
 
-    // beberapa model HuggingFace membungkus hasil dalam object aneh
-    if (Array.isArray(data)) {
-      result = data[0]?.generated_text || "";
-    } else if (data.generated_text) {
-      result = data.generated_text;
-    } else if (typeof data === "object") {
-      result = JSON.stringify(data); // biar tidak "[object Object]"
-    }
-
-    res.status(200).json({ result });
   } catch (err) {
-    res.status(500).json({ error: err.toString() });
+    return res.status(500).json({ error: err.toString() });
   }
 }
