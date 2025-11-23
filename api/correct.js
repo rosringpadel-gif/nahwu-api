@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const body = await req.json();
+    const body = JSON.parse(req.body || "{}");
 
     const response = await fetch(
       "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct",
