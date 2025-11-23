@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
@@ -7,9 +5,21 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Ambil dari POST body BUKAN req.query
-  const text = req.body?.text || "";
-  if (!text) return res.status(200).json({ result: "" });
+  let text = "";
+
+  try {
+    if (req.method === "POST") {
+      text = req.body?.text || "";
+    } else {
+      text = req.query.text || "";
+    }
+  } catch {
+    text = "";
+  }
+
+  if (!text.trim()) {
+    return res.status(200).json({ result: "" });
+  }
 
   try {
     const HF = await fetch(
