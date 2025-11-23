@@ -1,30 +1,20 @@
 export default async function handler(req, res) {
   try {
     const body = JSON.parse(req.body || "{}");
+    const text = encodeURIComponent(body.text || "");
 
-    const response = await fetch(
-      "https://translate.argosopentech.com/translate",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          q: body.text,
-          source: "id",
-          target: "ar",
-          format: "text"
-        })
-      }
-    );
+    // MyMemory free translation API
+    const url = `https://api.mymemory.translated.net/get?q=${text}&langpair=id|ar`;
 
+    const response = await fetch(url);
     const data = await response.json();
 
-    res.status(200).json({
-      result:
-        data.translatedText ||
-        data.translated ||
-        data.translated_text ||
-        ""
-    });
+    let result =
+      data.responseData?.translatedText ||
+      data.matches?.[0]?.translation ||
+      "";
+
+    res.status(200).json({ result });
 
   } catch (err) {
     res.status(500).json({ error: err.toString() });
