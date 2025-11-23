@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const body = await req.json();
+    const body = JSON.parse(req.body || "{}");
 
     const response = await fetch(
       "https://translate.argosopentech.com/translate",
