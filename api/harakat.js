@@ -5,8 +5,17 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  let text = req.method === "POST" ? req.body?.text : req.query.text;
-  if (!text?.trim()) return res.status(200).json({ result: "" });
+  let text = "";
+
+  try {
+    text = req.method === "POST" ? req.body?.text : req.query.text;
+  } catch {
+    text = "";
+  }
+
+  if (!text?.trim()) {
+    return res.status(200).json({ result: "" });
+  }
 
   try {
     const HF = await fetch(
@@ -23,10 +32,13 @@ export default async function handler(req, res) {
 
     const data = await HF.json();
 
-    const output =
-      data.diacritized_text ||        // format benar dari model CAMeL
-      data[0]?.diacritized_text ||    
-      "";
+    // --- HANDLE SEMUA BENTUK OUTPUT ---
+    let output =
+      data[0]?.generated_text ||
+      data.text ||
+      data.output ||
+      data.diacritized ||
+      JSON.stringify(data);
 
     res.status(200).json({ result: output });
 
