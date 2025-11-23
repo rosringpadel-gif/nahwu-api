@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer hf_xxxxxxxxxxxxxxxx" // ganti API key
+          "Authorization": "Bearer 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" // ganti API key
         },
         body: JSON.stringify({ inputs: text })
       }
