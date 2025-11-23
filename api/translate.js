@@ -1,16 +1,24 @@
 export default async function handler(req, res) {
+  // CORS wajib
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Untuk preflight
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   try {
     let q = "";
 
-    // Jika memakai POST
+    if (req.method === "GET") {
+      q = req.query.text || "";
+    }
+
     if (req.method === "POST" && req.body) {
       const body = JSON.parse(req.body || "{}");
       q = body.text || "";
-    }
-
-    // Jika memakai GET
-    if (req.method === "GET") {
-      q = req.query.text || "";
     }
 
     if (!q) {
