@@ -5,21 +5,8 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  let text = "";
-
-  try {
-    if (req.method === "POST") {
-      text = req.body?.text || "";
-    } else {
-      text = req.query.text || "";
-    }
-  } catch {
-    text = "";
-  }
-
-  if (!text.trim()) {
-    return res.status(200).json({ result: "" });
-  }
+  let text = req.method === "POST" ? req.body?.text : req.query.text;
+  if (!text?.trim()) return res.status(200).json({ result: "" });
 
   try {
     const HF = await fetch(
@@ -37,7 +24,11 @@ export default async function handler(req, res) {
     );
 
     const data = await HF.json();
-    const output = data[0]?.generated_text || "";
+
+    const output =
+      data.generated_text ||            // format 1
+      data[0]?.generated_text ||        // format 2
+      "";                               
 
     res.status(200).json({ result: output });
 
