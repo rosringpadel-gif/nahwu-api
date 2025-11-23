@@ -1,25 +1,29 @@
-// api/harakat.js
 export default async function handler(req, res) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  const text = req.query.text || "";
+  if (!text.trim()) {
+    return res.status(200).json({ result: "" });
+  }
 
   try {
-    const body = await req.body || "";
+    const prompt = "ضع التشكيل الكامل على هذا النص: " + text;
 
-    const text = typeof body === "string"
-      ? JSON.parse(body).text
-      : body.text;
+    const response = await fetch(
+      "https://api.mymemory.translated.net/get?q=" +
+        encodeURIComponent(prompt) +
+        "&langpair=ar|ar"
+    );
 
-    if (!text) return res.status(200).json({ result: "" });
+    const data = await response.json();
 
-    // Belum ada API harakat → return teks asli (sementara)
-    return res.status(200).json({ result: text });
+    const out =
+      data.responseData.translatedText ||
+      data.responseData.translated_text ||
+      "";
 
+    res.status(200).json({ result: out });
   } catch (err) {
-    return res.status(500).json({ error: err.toString() });
+    res.status(500).json({ error: err.toString() });
   }
 }
