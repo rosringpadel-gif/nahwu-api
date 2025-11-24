@@ -1,30 +1,36 @@
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  const text = req.query.text || "";
-  if (!text) return res.status(200).json({ result: "" });
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  const text =
+    req.method === "POST"
+      ? req.body?.text
+      : req.query?.text;
+
+  if (!text) {
+    return res.status(200).json({ result: "" });
+  }
 
   try {
     const HF = await fetch(
-      "https://router.huggingface.co/hf-inference/models/CAMeL-Lab/arabic-text-diacritizer",
+      "https://router.huggingface.co/models/CAMeL-Lab/bert-base-arabic-camelbert-mix-diacritization",
       {
         method: "POST",
         headers: {
-          "Authorization": "Bearer " + process.env.HF_TOKEN,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
         },
-        body: JSON.stringify({
-          inputs: text
-        })
+        body: JSON.stringify({ inputs: text }),
       }
     );
 
     const data = await HF.json();
-    const output =
-      data.generated_text ??
-      data[0]?.generated_text ??
-      data?.error ??
-      "";
+    const output = data?.generated_text || "";
 
     res.status(200).json({ result: output });
   } catch (err) {
